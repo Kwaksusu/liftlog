@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111418">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LiftLog">
+<title>LiftLog</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <button class="icon-btn" data-act="menu" aria-label="메뉴">☰</button>
+  <h1 id="title">LiftLog</h1>
+  <span class="topbar-space"></span>
+</header>
+
+<nav id="drawer" class="drawer" aria-hidden="true">
+  <div class="drawer-panel">
+    <div class="drawer-title">LiftLog</div>
+    <button data-act="nav" data-view="home">홈</button>
+    <button data-act="nav" data-view="records">기록</button>
+    <button data-act="nav" data-view="calendar">달력</button>
+    <button data-act="nav" data-view="calc">1RM 계산기</button>
+    <button data-act="nav" data-view="settings">설정</button>
+  </div>
+  <div class="drawer-backdrop" data-act="menu-close"></div>
+</nav>
+
+<main id="app"></main>
+
+<div id="timer" class="timer hidden">
+  <span id="timer-label"></span>
+  <span id="timer-time"></span>
+  <button class="icon-btn" data-act="timer-close" aria-label="타이머 닫기">✕</button>
+</div>
+
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+<script src="app.js"></script>
+</body>
+</html>
