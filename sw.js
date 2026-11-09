@@ -1,5 +1,5 @@
 /* 오프라인용 캐시. 앱을 고치면 VERSION 숫자를 올려야 휴대폰에 새 버전이 반영됩니다. */
-const VERSION = 'liftlog-v1';
+const VERSION = 'liftlog-v2';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
