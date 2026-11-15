@@ -191,6 +191,7 @@
         <label for="tmRatio">TM 비율</label>
         <select id="tmRatio">
           <option value="1.00">100% (e1RM 직결)</option>
+          <option value="0.95">95%</option>
           <option value="0.90" selected>90% (표준 TM)</option>
           <option value="0.85">85% (보수적 TM)</option>
         </select>
@@ -198,10 +199,8 @@
       <div class="field">
         <label for="step">중량 반올림 단위</label>
         <select id="step">
+          <option value="5">5 kg</option>
           <option value="2.5" selected>2.5 kg</option>
-          <option value="1.25">1.25 kg</option>
-          <option value="1">1.0 kg</option>
-          <option value="0.5">0.5 kg</option>
         </select>
       </div>
     </div>
@@ -344,8 +343,9 @@
         if (saved) {
           if (saved.weight) weightEl.value = saved.weight;
           if (saved.reps) repsEl.value = saved.reps;
-          if (saved.tmRatio) tmRatioEl.value = saved.tmRatio;
-          if (saved.step) stepEl.value = saved.step;
+          const has = (el, v) => [...el.options].some(o => o.value === v);
+          if (saved.tmRatio && has(tmRatioEl, saved.tmRatio)) tmRatioEl.value = saved.tmRatio;
+          if (saved.step && has(stepEl, saved.step)) stepEl.value = saved.step;
         }
       } catch (e) {}
     }
