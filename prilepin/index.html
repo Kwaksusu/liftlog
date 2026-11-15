@@ -341,7 +341,7 @@
         const wText = Number.isInteger(w) ? w : w.toFixed(1);
         rows.push(`
           <tr class="${Math.abs(w - tm) < 1e-9 ? "tm-row" : ""}">
-            <td><div class="w">${wText}</div><div class="pct">${Math.round(pct * 100)}% ${pctLabel}</div></td>
+            <td><div class="w">${wText}</div><div class="pct">${Math.floor(pct * 100 + 1e-6)}% ${pctLabel}</div></td>
             <td class="num-center"><strong>${s.reps}</strong></td>
             <td class="num-center"><span class="opt-badge">${z.opt}</span></td>
             <td class="num-right"><div class="scheme">${s.sets}×${s.reps}</div><div class="tot">(${s.total})</div></td>
