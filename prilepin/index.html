@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Prilepin" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+  <title>Prilepin Calculator</title>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #171717;
+      --border: #2a2a2a;
+      --text: #f0f0f0;
+      --muted: #8e8e93;
+      --accent: #ff6b2b;
+      --accent-dim: rgba(255, 107, 43, 0.15);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Pretendard", sans-serif;
+      padding: 16px;
+      line-height: 1.4;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    input, select {
+      width: 100%;
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 600;
+      padding: 10px 12px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+    .settings-row {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .settings-row select {
+      font-size: 14px;
+      padding: 8px 10px;
+    }
+    .result-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      text-align: center;
+    }
+    .stat-box {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .stat-box.highlight {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .stat-val {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-box.highlight .stat-val {
+      color: var(--accent);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    th {
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+    td {
+      padding: 12px 6px;
+      border-bottom: 1px solid #222;
+      vertical-align: middle;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .zone-pct {
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+    }
+    .zone-weight {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+    .sets-example {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .opt-badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 13px;
+    }
+    .num-right {
+      text-align: right;
+    }
+    .num-center {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Prilepin's Chart Calc</h1>
+
+  <div class="card">
+    <div class="grid-2">
+      <div class="field">
+        <label for="weight">중량 (kg)</label>
+        <input type="number" id="weight" inputmode="decimal" step="0.5" placeholder="100" value="100" />
+      </div>
+      <div class="field">
+        <label for="reps">반복수 (Reps)</label>
+        <input type="number" id="reps" inputmode="numeric" min="1" max="30" placeholder="5" value="5" />
+      </div>
+    </div>
+
+    <div class="grid-2 settings-row">
+      <div class="field">
+        <label for="tmRatio">TM 비율</label>
+        <select id="tmRatio">
+          <option value="1.00">100% (e1RM 직결)</option>
+          <option value="0.90" selected>90% (표준 TM)</option>
+          <option value="0.85">85% (보수적 TM)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="step">중량 반올림 단위</label>
+        <select id="step">
+          <option value="2.5" selected>2.5 kg</option>
+          <option value="1.25">1.25 kg</option>
+          <option value="1">1.0 kg</option>
+          <option value="0.5">0.5 kg</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="result-bar">
+      <div class="stat-box">
+        <div class="stat-label">Estimated 1RM</div>
+        <div class="stat-val" id="e1rmVal">-</div>
+      </div>
+      <div class="stat-box highlight">
+        <div class="stat-label">Training Max (TM)</div>
+        <div class="stat-val" id="tmVal">-</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 6px 10px;">
+    <table>
+      <thead>
+        <tr>
+          <th>강도 / 목표 중량</th>
+          <th class="num-center">세트당 반복</th>
+          <th class="num-center">Optimal</th>
+          <th class="num-right">Range</th>
+        </tr>
+      </thead>
+      <tbody id="chartBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const ZONES = [
+      {
+        label: "< 70%",
+        minPct: 0.55,
+        maxPct: 0.69,
+        repsPerSet: "3 - 6",
+        example: "4×6 · 5×5 · 6×4",
+        optimal: 24,
+        range: "18 - 30"
+      },
+      {
+        label: "70% - 79%",
+        minPct: 0.70,
+        maxPct: 0.79,
+        repsPerSet: "3 - 6",
+        example: "3×6 · 4×5 · 6×3",
+        optimal: 18,
+        range: "12 - 24"
+      },
+      {
+        label: "80% - 89%",
+        minPct: 0.80,
+        maxPct: 0.89,
+        repsPerSet: "2 - 4",
+        example: "5×3 · 4×4 · 7×2",
+        optimal: 15,
+        range: "10 - 20"
+      },
+      {
+        label: "≥ 90%",
+        minPct: 0.90,
+        maxPct: 1.00,
+        repsPerSet: "1 - 2",
+        example: "4×2 · 7×1 · 3×2+1",
+        optimal: 7,
+        range: "4 - 10"
+      }
+    ];
+
+    const weightEl = document.getElementById("weight");
+    const repsEl = document.getElementById("reps");
+    const tmRatioEl = document.getElementById("tmRatio");
+    const stepEl = document.getElementById("step");
+    const e1rmValEl = document.getElementById("e1rmVal");
+    const tmValEl = document.getElementById("tmVal");
+    const chartBodyEl = document.getElementById("chartBody");
+
+    function roundToStep(val, step) {
+      const rounded = Math.round(val / step) * step;
+      return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(2).replace(/\.?0+$/, "");
+    }
+
+    function calculate() {
+      const w = parseFloat(weightEl.value);
+      const r = parseInt(repsEl.value, 10);
+      const ratio = parseFloat(tmRatioEl.value);
+      const step = parseFloat(stepEl.value);
+
+      try {
+        localStorage.setItem("prilepin_state", JSON.stringify({
+          weight: weightEl.value,
+          reps: repsEl.value,
+          tmRatio: tmRatioEl.value,
+          step: stepEl.value
+        }));
+      } catch (e) {}
+
+      if (!w || w <= 0 || !r || r < 1) {
+        e1rmValEl.textContent = "-";
+        tmValEl.textContent = "-";
+        chartBodyEl.innerHTML = "";
+        return;
+      }
+
+      // Epley formula (1 rep = exact weight)
+      const e1rm = r === 1 ? w : w * (1 + r / 30);
+      const tm = e1rm * ratio;
+
+      e1rmValEl.textContent = `${e1rm.toFixed(1)} kg`;
+      tmValEl.textContent = `${roundToStep(tm, step)} kg`;
+
+      chartBodyEl.innerHTML = ZONES.map(z => {
+        const lowW = roundToStep(tm * z.minPct, step);
+        const highW = roundToStep(tm * z.maxPct, step);
+        const weightText = z.minPct === 0.55
+          ? `~ ${highW} kg (55%: ${lowW})`
+          : `${lowW} - ${highW} kg`;
+
+        return `
+          <tr>
+            <td>
+              <div class="zone-pct">${z.label}</div>
+              <div class="zone-weight">${weightText}</div>
+              <div class="sets-example">${z.example}</div>
+            </td>
+            <td class="num-center"><strong>${z.repsPerSet}</strong></td>
+            <td class="num-center"><span class="opt-badge">${z.optimal}</span></td>
+            <td class="num-right">${z.range}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("prilepin_state"));
+        if (saved) {
+          if (saved.weight) weightEl.value = saved.weight;
+          if (saved.reps) repsEl.value = saved.reps;
+          if (saved.tmRatio) tmRatioEl.value = saved.tmRatio;
+          if (saved.step) stepEl.value = saved.step;
+        }
+      } catch (e) {}
+    }
+
+    [weightEl, repsEl, tmRatioEl, stepEl].forEach(el => {
+      el.addEventListener("input", calculate);
+      el.addEventListener("change", calculate);
+    });
+
+    loadState();
+    calculate();
+  </script>
+</body>
+</html>
