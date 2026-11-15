@@ -162,6 +162,25 @@
       border-radius: 5px;
       font-size: 13px;
     }
+    .plan th, .plan td { padding: 9px 4px; }
+    .plan td { font-size: 14px; }
+    .plan .w { font-weight: 800; font-size: 16px; }
+    .plan .pct { font-size: 11px; color: var(--muted); }
+    .plan .scheme { font-weight: 800; color: var(--accent); font-size: 15px; white-space: nowrap; }
+    .plan .tot { font-size: 11px; color: var(--muted); }
+    .plan tr.zone-head td {
+      padding: 10px 4px 4px; font-size: 11px; font-weight: 700; color: var(--muted);
+      border-bottom: 1px solid var(--border); text-transform: none;
+    }
+    .plan tr.tm-row .w { color: var(--accent); }
+    details summary {
+      list-style: none; cursor: pointer; font-size: 13px; font-weight: 600;
+      color: var(--muted); padding: 8px 4px;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before { content: "▸ "; }
+    details[open] summary::before { content: "▾ "; }
+    .note { font-size: 11px; color: var(--muted); padding: 6px 4px 2px; line-height: 1.5; }
     .num-right {
       text-align: right;
     }
@@ -197,17 +216,15 @@
         </select>
       </div>
       <div class="field">
-        <label for="step">중량 반올림 단위</label>
+        <label for="step">중량 단위</label>
         <select id="step">
-          <option value="5">5 kg</option>
-          <option value="2.5" selected>2.5 kg</option>
+          <option value="5" selected>5 kg</option>
+          <option value="2.5">2.5 kg</option>
         </select>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="result-bar">
+    <div class="result-bar settings-row">
       <div class="stat-box">
         <div class="stat-label">Estimated 1RM</div>
         <div class="stat-val" id="e1rmVal">-</div>
@@ -220,6 +237,22 @@
   </div>
 
   <div class="card" style="padding: 6px 10px;">
+    <table class="plan">
+      <thead>
+        <tr>
+          <th>중량</th>
+          <th class="num-center">세트당 반복</th>
+          <th class="num-center">적정</th>
+          <th class="num-right">추천</th>
+        </tr>
+      </thead>
+      <tbody id="planBody"></tbody>
+    </table>
+    <div class="note">추천 = 구간 안에서 무거울수록 세트당 반복을 줄이고, 총 반복을 적정치에 맞춘 세트×반복. 괄호는 총 반복.</div>
+  </div>
+
+  <details class="card" style="padding: 6px 10px;">
+    <summary>프릴레핀 차트 원본 보기</summary>
     <table>
       <thead>
         <tr>
@@ -231,7 +264,7 @@
       </thead>
       <tbody id="chartBody"></tbody>
     </table>
-  </div>
+  </details>
 
   <script>
     const ZONES = [
@@ -273,6 +306,50 @@
       }
     ];
 
+    // 실제 계산용: 구간 경계, 세트당 반복 최소/최대, 적정, 범위
+    const PLAN_ZONES = [
+      { lo: 0.55, hi: 0.70, rMin: 3, rMax: 6, recMin: 4, opt: 24, min: 18, max: 30, name: "< 70%" },
+      { lo: 0.70, hi: 0.80, rMin: 3, rMax: 6, opt: 18, min: 12, max: 24, name: "70 - 79%" },
+      { lo: 0.80, hi: 0.90, rMin: 2, rMax: 4, opt: 15, min: 10, max: 20, name: "80 - 89%" },
+      { lo: 0.90, hi: 1.0001, rMin: 1, rMax: 2, opt: 7, min: 4, max: 10, name: "≥ 90%" }
+    ];
+
+    function schemeFor(z, pct) {
+      const pos = Math.min(1, Math.max(0, (pct - z.lo) / (Math.min(z.hi, 1) - z.lo)));
+      const lo = z.recMin || z.rMin;
+      const reps = Math.round(z.rMax - pos * (z.rMax - lo));
+      let sets = Math.max(1, Math.round(z.opt / reps));
+      if (sets * reps > z.max) sets--;
+      if (sets * reps < z.min) sets++;
+      return { sets, reps, total: sets * reps };
+    }
+
+    function renderPlan(tm, step, ratio) {
+      const pctLabel = ratio === 1 ? "1RM" : "TM";
+      const start = Math.ceil((tm * 0.55) / step) * step;
+      const rows = [];
+      let lastZone = null;
+      for (let w = start; w <= tm + 1e-9; w += step) {
+        const pct = w / tm;
+        const z = PLAN_ZONES.find(z => pct >= z.lo && pct < z.hi);
+        if (!z) continue;
+        if (z !== lastZone) {
+          rows.push(`<tr class="zone-head"><td colspan="4">${z.name} ${pctLabel} · 세트당 ${z.rMin}-${z.rMax}회 · 총 ${z.min}-${z.max}회</td></tr>`);
+          lastZone = z;
+        }
+        const s = schemeFor(z, pct);
+        const wText = Number.isInteger(w) ? w : w.toFixed(1);
+        rows.push(`
+          <tr class="${Math.abs(w - tm) < 1e-9 ? "tm-row" : ""}">
+            <td><div class="w">${wText}</div><div class="pct">${Math.round(pct * 100)}% ${pctLabel}</div></td>
+            <td class="num-center"><strong>${s.reps}</strong></td>
+            <td class="num-center"><span class="opt-badge">${z.opt}</span></td>
+            <td class="num-right"><div class="scheme">${s.sets}×${s.reps}</div><div class="tot">(${s.total})</div></td>
+          </tr>`);
+      }
+      planBodyEl.innerHTML = rows.join("");
+    }
+
     const weightEl = document.getElementById("weight");
     const repsEl = document.getElementById("reps");
     const tmRatioEl = document.getElementById("tmRatio");
@@ -280,6 +357,7 @@
     const e1rmValEl = document.getElementById("e1rmVal");
     const tmValEl = document.getElementById("tmVal");
     const chartBodyEl = document.getElementById("chartBody");
+    const planBodyEl = document.getElementById("planBody");
 
     function roundToStep(val, step) {
       const rounded = Math.round(val / step) * step;
@@ -305,6 +383,7 @@
         e1rmValEl.textContent = "-";
         tmValEl.textContent = "-";
         chartBodyEl.innerHTML = "";
+        planBodyEl.innerHTML = "";
         return;
       }
 
@@ -314,6 +393,7 @@
 
       e1rmValEl.textContent = `${e1rm.toFixed(1)} kg`;
       tmValEl.textContent = `${roundToStep(tm, step)} kg`;
+      renderPlan(parseFloat(roundToStep(tm, step)), step, ratio);
 
       chartBodyEl.innerHTML = ZONES.map(z => {
         const lowW = roundToStep(tm * z.minPct, step);
